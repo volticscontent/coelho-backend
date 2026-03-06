@@ -16,7 +16,11 @@ const port = process.env.PORT || 3000;
 exports.prisma = new client_1.PrismaClient();
 // Middlewares
 app.use((0, cors_1.default)({
-    origin: process.env.FRONTEND_URL || '*'
+    origin: function (origin, callback) {
+        // Permitir qualquer origem para evitar bloqueios de CORS entre locais e produção
+        callback(null, true);
+    },
+    credentials: true
 }));
 app.use(express_1.default.json());
 // Main Routes
