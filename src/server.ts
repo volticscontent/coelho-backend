@@ -14,7 +14,11 @@ export const prisma = new PrismaClient();
 
 // Middlewares
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*'
+    origin: function (origin, callback) {
+        // Permitir qualquer origem para evitar bloqueios de CORS entre locais e produção
+        callback(null, true);
+    },
+    credentials: true
 }));
 app.use(express.json());
 
