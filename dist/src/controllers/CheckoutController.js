@@ -6,19 +6,31 @@ const s3Service_1 = require("../services/s3Service");
 const createSession = async (req, res) => {
     try {
         const { product, quantity, options, totalPrice, customerName, customerEmail, customerPhone, clientUserAgent, clientIp, fbp, fbc } = req.body;
+        console.log('[Checkout] Session creation requested');
+        console.log('[Checkout] Body params:', req.body);
         const files = req.files;
+        console.log(`[Checkout] Received ${files ? files.length : 0} files`);
         const childrenDataRaw = req.body.childrenData;
         let childrenData = [];
         if (childrenDataRaw) {
             childrenData = JSON.parse(childrenDataRaw);
+            console.log('[Checkout] Parsed childrenData:', childrenData);
         }
         if (files && files.length > 0) {
             let fileIndex = 0;
             for (let i = 0; i < childrenData.length; i++) {
                 if (childrenData[i].hasPhoto && fileIndex < files.length) {
                     const file = files[fileIndex];
-                    const url = await (0, s3Service_1.uploadFile)(file.buffer, file.mimetype, file.originalname);
-                    childrenData[i].photoUrl = url;
+                    console.log(`[Checkout] Uploading photo for child ${childrenData[i].name}...`);
+                    try {
+                        const url = await (0, s3Service_1.uploadFile)(file.buffer, file.mimetype, file.originalname);
+                        childrenData[i].photoUrl = url;
+                        console.log(`[Checkout] Photo uploaded successfully! URL: ${url}`);
+                    }
+                    catch (uploadError) {
+                        console.error('[Checkout] FAILED to upload photo:', uploadError);
+                        throw uploadError; // Re-throw to be caught by the outer catch
+                    }
                     fileIndex++;
                 }
             }

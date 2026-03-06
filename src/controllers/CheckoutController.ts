@@ -18,12 +18,16 @@ export const createSession = async (req: Request, res: Response) => {
             fbc
         } = req.body;
 
+        console.log('[Checkout] Session creation requested');
+        console.log('[Checkout] Body params:', req.body);
         const files = req.files as Express.Multer.File[];
+        console.log(`[Checkout] Received ${files ? files.length : 0} files`);
         const childrenDataRaw = req.body.childrenData;
 
         let childrenData: any[] = [];
         if (childrenDataRaw) {
             childrenData = JSON.parse(childrenDataRaw);
+            console.log('[Checkout] Parsed childrenData:', childrenData);
         }
 
         if (files && files.length > 0) {
@@ -31,8 +35,15 @@ export const createSession = async (req: Request, res: Response) => {
             for (let i = 0; i < childrenData.length; i++) {
                 if (childrenData[i].hasPhoto && fileIndex < files.length) {
                     const file = files[fileIndex];
-                    const url = await uploadFile(file.buffer, file.mimetype, file.originalname);
-                    childrenData[i].photoUrl = url;
+                    console.log(`[Checkout] Uploading photo for child ${childrenData[i].name}...`);
+                    try {
+                        const url = await uploadFile(file.buffer, file.mimetype, file.originalname);
+                        childrenData[i].photoUrl = url;
+                        console.log(`[Checkout] Photo uploaded successfully! URL: ${url}`);
+                    } catch (uploadError) {
+                        console.error('[Checkout] FAILED to upload photo:', uploadError);
+                        throw uploadError; // Re-throw to be caught by the outer catch
+                    }
                     fileIndex++;
                 }
             }
