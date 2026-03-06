@@ -25,7 +25,7 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-app.listen(port, () => {
+app.listen(Number(port), '0.0.0.0', () => {
     console.log(`Rabbit Backend Server is running on port ${port}`);
     startCronJobs();
 });
