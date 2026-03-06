@@ -12,6 +12,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@prisma/client": "^7.4.2",
     "aws-sdk": "^2.1693.0",
