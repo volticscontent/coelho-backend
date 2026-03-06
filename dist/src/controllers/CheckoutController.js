@@ -13,11 +13,13 @@ const createSession = async (req, res) => {
             childrenData = JSON.parse(childrenDataRaw);
         }
         if (files && files.length > 0) {
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const url = await (0, s3Service_1.uploadFile)(file.buffer, file.mimetype, file.originalname);
-                if (childrenData[i]) {
+            let fileIndex = 0;
+            for (let i = 0; i < childrenData.length; i++) {
+                if (childrenData[i].hasPhoto && fileIndex < files.length) {
+                    const file = files[fileIndex];
+                    const url = await (0, s3Service_1.uploadFile)(file.buffer, file.mimetype, file.originalname);
                     childrenData[i].photoUrl = url;
+                    fileIndex++;
                 }
             }
         }

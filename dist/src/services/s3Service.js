@@ -8,14 +8,15 @@ const aws_sdk_1 = __importDefault(require("aws-sdk"));
 const uuid_1 = require("uuid");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const endpoint = process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
 const s3 = new aws_sdk_1.default.S3({
-    endpoint: process.env.R2_ENDPOINT,
+    endpoint: endpoint,
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
     signatureVersion: 'v4',
-    s3ForcePathStyle: true, // Necessário para R2 e MinIO
+    s3ForcePathStyle: true,
 });
-const BUCKET_NAME = process.env.R2_BUCKET || 'coelho';
+const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'coelho';
 const uploadFile = async (fileBuffer, mimetype, originalName) => {
     const extension = originalName.split('.').pop();
     const key = `uploads/${(0, uuid_1.v4)()}.${extension}`;
@@ -24,12 +25,11 @@ const uploadFile = async (fileBuffer, mimetype, originalName) => {
         Bucket: BUCKET_NAME,
         Key: key,
         Body: fileBuffer,
-        ContentType: mimetype,
-        ACL: 'public-read' // Assumindo R2 public bucket
+        ContentType: mimetype
     })
         .promise();
-    // Dependendo do R2, a URL pública precisa ser montada (precisa ter custom domain habilitado)
-    return `${process.env.R2_ENDPOINT}/${BUCKET_NAME}/${key}`;
+    const publicUrl = process.env.R2_PUBLIC_URL;
+    return publicUrl ? `${publicUrl}/${key}` : `${endpoint}/${BUCKET_NAME}/${key}`;
 };
 exports.uploadFile = uploadFile;
 const deleteFile = async (url) => {
